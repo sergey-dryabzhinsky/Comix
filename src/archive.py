@@ -18,7 +18,7 @@ import gtk
 import process
 from image import get_supported_format_extensions_preg
 
-ZIP, RAR, TAR, GZIP, BZIP2, SEVENZIP, MOBI = range(7)
+ZIP, RAR, TAR, GZIP, BZIP2, SEVENZIP, MOBI, DIRECTORY = range(8)
 
 _rar_exec = None
 _7z_exec = None
@@ -126,6 +126,10 @@ class Extractor:
                 print '! Failed to unpack MobiPocket:', e
                 return None
 
+        elif self._type == DIRECTORY:
+            for r, d, f in os.walk(src):
+                for _f in f:
+                    self._files.append(os.path.join(r, _f))
         else:
             print '! Non-supported archive format:', src
             return None
@@ -349,6 +353,8 @@ class Extractor:
         if os.path.exists(os.path.join(self._dst, chosen)):
             cStringIO.StringIO(open(os.path.join(self._dst, chosen), 'rb').read())
 
+        if self._type == DIRECTORY:
+            return cStringIO.StringIO(open(os.path.join(self._src, chosen), 'rb').read())
         if self._type == ZIP:
             return cStringIO.StringIO(self._zfile.read(chosen))
         elif self._type in [TAR, GZIP, BZIP2]:
@@ -479,6 +485,8 @@ def archive_mime_type(path):
                 return SEVENZIP
             if magic2 == 'BOOKMOBI':
                 return MOBI
+        elif os.path.isdir(path):
+            return DIRECTORY
     except Exception:
         print '! Error while reading', path
     return None
@@ -493,6 +501,7 @@ def get_name(archive_type):
             RAR:   _('RAR archive'),
             SEVENZIP: _('7-Zip archive'),
             MOBI:  _('MobiPocket file'),
+            DIRECTORY:  _('Directory'),
            }[archive_type]
 
 
