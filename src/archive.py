@@ -129,7 +129,9 @@ class Extractor:
         elif self._type == DIRECTORY:
             for r, d, f in os.walk(src):
                 for _f in f:
-                    self._files.append(os.path.join(r, _f))
+                    fp = os.path.join(r, _f)
+                    if os.path.isfile(fp):
+                        self._files.append(os.path.join(r, _f))
         else:
             print '! Non-supported archive format:', src
             return None

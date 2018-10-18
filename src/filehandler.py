@@ -366,7 +366,8 @@ class FileHandler:
     def _open_subarchive(self, dir, path):
         """Allows to recursively extract all subarchives"""
         extractor = archive.Extractor()
-        condition = extractor.setup(dir + "/" + path, dir)
+        fullpath = os.path.join(dir, path)
+        condition = extractor.setup(fullpath, dir)
         sub_files = extractor.get_files()
         alphanumeric_sort(sub_files)
         extractor.set_files(sub_files)
@@ -379,7 +380,8 @@ class FileHandler:
             name = dir + "/" + name
             if archive.archive_mime_type(name) is not None:
                 self._open_subarchive(os.path.dirname(name), os.path.basename(name))
-        os.remove(dir + "/" + path)
+        if not os.path.isdir(fullpath):
+            os.remove(fullpath)
 
     def close_file(self, *args):
         """Run tasks for "closing" the currently opened file(s)."""
