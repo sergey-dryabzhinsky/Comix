@@ -238,7 +238,7 @@ class FileHandler:
                 _('Could not open %s: No such file.') % path)
             return False
         self.archive_type = archive.archive_mime_type(path)
-        if self.archive_type is None and not is_image_file(path) and \
+        if self.archive_type in (None, archive.DIRECTORY,) and not is_image_file(path) and \
           not dir_path:
             self._window.statusbar.set_message(
                 _('Could not open %s: Unknown file type.') % path)
@@ -255,7 +255,8 @@ class FileHandler:
         # If <path> is an archive we create an Extractor for it and set the
         # files in it with file endings indicating image files or comments
         # as the ones to be extracted.
-        if self.archive_type is not None:
+        if self.archive_type not in (None, archive.DIRECTORY,):
+            print("Type 1")
             self._base_path = path
             self._condition = self._extractor.setup(path, self._tmp_dir)
             files = self._extractor.get_files()
@@ -280,18 +281,29 @@ class FileHandler:
 
             self._extractor.extract()
         else:
+            print("Type 2")
             # If <path> is an image we scan its directory for more (or for
             # any at all if <path> is directory).
             self._base_path = dir_path if dir_path else os.path.dirname(path)
             # Not necessary to sort *all* of it, but whatever.
-            for f in list_dir_sorted(self._base_path):
-                fpath = os.path.join(self._base_path, f)
-                if is_image_file(fpath):
-                    self._image_files.append(fpath)
+            for r,d,fls in os.walk(self._base_path):
+                for f in fls:
+                    fpath = os.path.join(r, f)
+                    if is_image_file(fpath):
+                        self._image_files.append(fpath)
+                        self._name_table[fpath] = f
+
+            print("Image files 0:")
+            print(repr(self._image_files))
+
+            alphanumeric_sort(self._image_files)
             if dir_path:
                 self._redo_priority_ordering(start_page, self._image_files)
             else:
                 self._current_image_index = self._image_files.index(path)
+
+        print("Image files 1:")
+        print(repr(self._image_files))
 
         # Manage subarchive
         if unknown_files:
@@ -299,7 +311,7 @@ class FileHandler:
             for (i, name) in enumerate(unknown_files):
                 f = self._tmp_dir + name
                 self._wait_on_file(f)
-                if archive.archive_mime_type(f) is not None:
+                if archive.archive_mime_type(f) not in (None, archive.DIRECTORY,):
                     self._open_subarchive(os.path.dirname(f),
                                           os.path.basename(f))
                     has_subarchive = True
@@ -327,6 +339,9 @@ class FileHandler:
                 self._extractor.set_files(extracted_files, True)
                 #redo calculation of current_index from start_page
                 self._redo_priority_ordering(start_page, self._image_files)
+
+        print("Image files 2:")
+        print(repr(self._image_files))
 
         if not self._image_files:
             self._window.statusbar.set_message(_("No images or subarchives in '%s'") %
@@ -365,8 +380,8 @@ class FileHandler:
 
     def _open_subarchive(self, dir, path):
         """Allows to recursively extract all subarchives"""
-        extractor = archive.Extractor()
         fullpath = os.path.join(dir, path)
+        extractor = archive.Extractor()
         condition = extractor.setup(fullpath, dir)
         sub_files = extractor.get_files()
         alphanumeric_sort(sub_files)
@@ -377,9 +392,10 @@ class FileHandler:
             while not extractor.is_ready(name):
                 condition.wait()
             condition.release()
-            name = dir + "/" + name
-            if archive.archive_mime_type(name) is not None:
-                self._open_subarchive(os.path.dirname(name), os.path.basename(name))
+            dname = dir + "/" + name
+            name_type = archive.archive_mime_type(dname)
+            if archive.archive_mime_type(dname) not in (None, archive.DIRECTORY,):
+                self._open_subarchive(os.path.dirname(dir), os.path.basename(name))
         if not os.path.isdir(fullpath):
             os.remove(fullpath)
 
@@ -636,9 +652,11 @@ class FileHandler:
         archive and has not yet been extracted. Return when the file is
         ready.
         """
-        if self.archive_type is None:
+        if self.archive_type in (None, archive.DIRECTORY,):
             return
         name = self._name_table[path]
+        if self._extractor.is_ready(name):
+            return
         self._condition.acquire()
         while not self._extractor.is_ready(name):
             self._condition.wait()

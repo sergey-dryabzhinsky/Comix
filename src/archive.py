@@ -67,7 +67,7 @@ class Extractor:
             if _rar_exec is None:
                 _rar_exec = _get_rar_exec()
                 if _rar_exec is None:
-                    print '! Could not find RAR file extractor.'
+                    print( '! Could not find RAR file extractor.')
                     dialog = gtk.MessageDialog(None, 0, gtk.MESSAGE_WARNING,
                         gtk.BUTTONS_CLOSE,
                         _("Could not find RAR file extractor!"))
@@ -85,7 +85,7 @@ class Extractor:
             global _7z_exec, Archive7z
 
             if not Archive7z:  # lib import failed
-                print ': pylzma is not installed... will try 7z tool...'
+                print( ': pylzma is not installed... will try 7z tool...')
 
                 if _7z_exec is None:
                     _7z_exec = _get_7z_exec()
@@ -100,7 +100,7 @@ class Extractor:
                         _7z_exec = _get_7z_exec()
 
             if _7z_exec is None:
-                print '! Could not find 7Z file extractor.'
+                print('! Could not find 7Z file extractor.')
             elif not Archive7z:
                 proc = process.Process([_7z_exec, 'l', '-bd', '-slt', '-p-', src])
                 fd = proc.spawn()
@@ -123,17 +123,17 @@ class Extractor:
                 self._mobifile = mobiunpack.MobiFile(src)
                 self._files = self._mobifile.getnames()
             except mobiunpack.unpackException as e:
-                print '! Failed to unpack MobiPocket:', e
+                print('! Failed to unpack MobiPocket:', e)
                 return None
 
         elif self._type == DIRECTORY:
-            for r, d, f in os.walk(src):
+            for r,d,f in os.walk(src):
                 for _f in f:
-                    fp = os.path.join(r, _f)
-                    if os.path.isfile(fp):
-                        self._files.append(os.path.join(r, _f))
+                    self._files.append(_f)
+                    self.extracted[_f] = True
+            pass
         else:
-            print '! Non-supported archive format:', src
+            print('! Non-supported archive format:', src)
             return None
 
         self._setupped = True
@@ -353,7 +353,7 @@ class Extractor:
         """
 
         if os.path.exists(os.path.join(self._dst, chosen)):
-            cStringIO.StringIO(open(os.path.join(self._dst, chosen), 'rb').read())
+            return cStringIO.StringIO(open(os.path.join(self._dst, chosen), 'rb').read())
 
         if self._type == DIRECTORY:
             return cStringIO.StringIO(open(os.path.join(self._src, chosen), 'rb').read())
