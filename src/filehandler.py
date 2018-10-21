@@ -256,7 +256,6 @@ class FileHandler:
         # files in it with file endings indicating image files or comments
         # as the ones to be extracted.
         if self.archive_type not in (None, archive.DIRECTORY,):
-            print("Type 1")
             self._base_path = path
             self._condition = self._extractor.setup(path, self._tmp_dir)
             files = self._extractor.get_files()
@@ -281,7 +280,6 @@ class FileHandler:
 
             self._extractor.extract()
         else:
-            print("Type 2")
             # If <path> is an image we scan its directory for more (or for
             # any at all if <path> is directory).
             self._base_path = dir_path if dir_path else os.path.dirname(path)
@@ -293,17 +291,11 @@ class FileHandler:
                         self._image_files.append(fpath)
                         self._name_table[fpath] = f
 
-            print("Image files 0:")
-            print(repr(self._image_files))
-
             alphanumeric_sort(self._image_files)
             if dir_path:
                 self._redo_priority_ordering(start_page, self._image_files)
             else:
                 self._current_image_index = self._image_files.index(path)
-
-        print("Image files 1:")
-        print(repr(self._image_files))
 
         # Manage subarchive
         if unknown_files:
@@ -339,9 +331,6 @@ class FileHandler:
                 self._extractor.set_files(extracted_files, True)
                 #redo calculation of current_index from start_page
                 self._redo_priority_ordering(start_page, self._image_files)
-
-        print("Image files 2:")
-        print(repr(self._image_files))
 
         if not self._image_files:
             self._window.statusbar.set_message(_("No images or subarchives in '%s'") %
