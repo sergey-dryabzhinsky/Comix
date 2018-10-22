@@ -665,7 +665,17 @@ def is_image_file(path):
     """Return True if the file at <path> is an image file recognized by PyGTK.
     """
     if os.path.isfile(path):
-        info = gtk.gdk.pixbuf_get_file_info(path)
+        try:
+            info = gtk.gdk.pixbuf_get_file_info(path)
+        except:
+            info = None
+
+        if info is None:
+            try:
+                im = image.Image.open( path )
+                info = im.info
+            except Exception:
+                info = None
         return info is not None
     return False
 
