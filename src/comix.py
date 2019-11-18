@@ -73,6 +73,9 @@ except AssertionError:
     print 'Installed PIL version is: %s' % Image.VERSION
     print 'Required PIL version is: 1.1.5 or higher'
     sys.exit(1)
+except AttributeError:
+    # New Pillow >= 6
+    pass
 
 import constants
 import deprecated
