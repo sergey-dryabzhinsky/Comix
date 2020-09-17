@@ -1,3 +1,11 @@
+Comix 4.0.18
+
+    - Add hiec/avif images support
+
+Comix 4.0.17
+
+    - Fix Pillow support >= 6.x
+
 Comix 4.0.16
 
     - Fix extended suport of images by Pillow

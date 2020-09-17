@@ -40,7 +40,9 @@ def get_supported_format_extensions_preg():
         # Support status is unknown. We can only try to load images...
         formats.extend([
             "j2[kp]", "jp[2x]",
-            "webp"
+            "webp",
+            "heic",
+            "avif",
         ])
     return formats
 
